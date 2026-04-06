@@ -1,0 +1,460 @@
+{% extends "base.html" %}
+
+{% block head %}
+<script>
+function confirmCsvUpload() {
+    const mode = document.getElementById("upload_mode").value;
+    const confirmInput = document.getElementById("confirm_overwrite");
+    if (mode !== "overwrite") {
+        confirmInput.value = "no";
+        return true;
+    }
+
+    const ok = window.confirm("你正在执行覆盖修改，这会删除当前筛选条件下已有卡片并按 CSV 重建，是否继续？");
+    confirmInput.value = ok ? "yes" : "no";
+    return ok;
+}
+
+function updateCsvFileName(input) {
+    const fileName = document.getElementById("csv-file-name");
+    if (!fileName) {
+        return;
+    }
+
+    if (input.files && input.files.length > 0) {
+        fileName.textContent = input.files[0].name;
+    } else {
+        fileName.textContent = "尚未选择文件";
+    }
+}
+
+function promptCreateBanListDate(form) {
+    const yearInput = form.querySelector("input[name='year']");
+    const year = yearInput ? Number(yearInput.value) : new Date().getFullYear();
+    const defaultDate = `${year}-01-01`;
+    const value = window.prompt("请输入要创建的禁卡表生效日期（YYYY-MM-DD）", defaultDate);
+    if (!value) {
+        return false;
+    }
+
+    const trimmed = value.trim();
+    const validFormat = /^\d{4}-\d{2}-\d{2}$/.test(trimmed);
+    const parsedDate = new Date(`${trimmed}T00:00:00`);
+    if (!validFormat || Number.isNaN(parsedDate.getTime())) {
+        window.alert("日期格式不合法，请使用 YYYY-MM-DD。\n示例：2026-04-15");
+        return false;
+    }
+
+    const target = form.querySelector("input[name='effective_date']");
+    if (!target) {
+        return false;
+    }
+    target.value = trimmed;
+    return true;
+}
+
+function confirmDeleteBanList(form) {
+    const firstConfirm = window.confirm("你将删除当前禁卡表及其卡片记录，此操作不可恢复，是否继续？");
+    if (!firstConfirm) {
+        return false;
+    }
+
+    const secondConfirm = window.prompt("为防止误触，请输入 DELETE 确认删除：", "");
+    if (secondConfirm !== "DELETE") {
+        window.alert("未通过删除确认，操作已取消。\n请准确输入 DELETE。");
+        return false;
+    }
+
+    const hidden = form.querySelector("input[name='confirm_delete']");
+    if (!hidden) {
+        return false;
+    }
+    hidden.value = "yes";
+    return true;
+}
+
+function openCreateBanListModal() {
+    const modal = document.getElementById("create-banlist-modal");
+    if (!modal) {
+        return;
+    }
+    modal.classList.add("is-open");
+}
+
+function closeCreateBanListModal() {
+    const modal = document.getElementById("create-banlist-modal");
+    if (!modal) {
+        return;
+    }
+    modal.classList.remove("is-open");
+}
+
+function toggleCreateBanListFile(checkbox) {
+    const row = document.getElementById("create-banlist-file-row");
+    const fileInput = document.getElementById("create_banlist_csv");
+    const useCsvHidden = document.getElementById("create_use_csv");
+    const enabled = !!checkbox.checked;
+
+    if (row) {
+        row.style.display = enabled ? "" : "none";
+    }
+    if (fileInput) {
+        fileInput.required = enabled;
+        if (!enabled) {
+            fileInput.value = "";
+        }
+    }
+    if (useCsvHidden) {
+        useCsvHidden.value = enabled ? "yes" : "no";
+    }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const fileInput = document.getElementById("banlist_csv");
+    if (fileInput) {
+        updateCsvFileName(fileInput);
+        fileInput.addEventListener("change", () => updateCsvFileName(fileInput));
+    }
+
+    const modal = document.getElementById("create-banlist-modal");
+    if (modal) {
+        modal.addEventListener("click", (event) => {
+            if (event.target === modal) {
+                closeCreateBanListModal();
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+
+{% block content %}
+    <div class="editor-toolbar">
+        <div class="filter-box editor-filter-box">
+            <form method="GET" action="{{ url_for('main.edit_page') }}">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>年份</label>
+                        <select name="year">
+                            {% for y in year_options %}
+                            <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>{{ y }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>环境</label>
+                        <select name="region">
+                            {% set region_labels = ['OCG', 'TCG', '简体中文', '大师决斗'] %}
+                            {% for idx in range(region_labels|length) %}
+                            <option value="{{ idx }}" {% if idx == selected_region %}selected{% endif %}>{{ region_labels[idx] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group button-group">
+                        <button type="submit" class="btn-primary">切换时间</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="filter-box auth-box">
+            {% if edit_authenticated %}
+                <div class="auth-status">
+                    <span>已通过密码验证，当前可进行修改。</span>
+                    <form method="POST" action="{{ url_for('main.edit_logout') }}">
+                        <input type="hidden" name="year" value="{{ selected_year }}">
+                        <input type="hidden" name="effective_date" value="{{ selected_effective_date }}">
+                        <input type="hidden" name="region" value="{{ selected_region }}">
+                        <input type="hidden" name="mode" value="{{ selected_mode }}">
+                        <button type="submit" class="btn-secondary">退出修改权限</button>
+                    </form>
+                </div>
+            {% else %}
+                <form method="POST" action="{{ url_for('main.edit_login') }}" class="auth-form">
+                    <input type="hidden" name="year" value="{{ selected_year }}">
+                    <input type="hidden" name="effective_date" value="{{ selected_effective_date }}">
+                    <input type="hidden" name="region" value="{{ selected_region }}">
+                    <input type="hidden" name="mode" value="{{ selected_mode }}">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="auth-label">
+                                <span>访问口令</span>
+                                <span class="auth-hint-mark" tabindex="0" aria-label="未验证前只能查看，不能新增、上传或编辑卡片。" data-tooltip="未验证前只能查看，不能新增、上传或编辑卡片。">?</span>
+                            </label>
+                            <input type="password" class="auth-password" name="password" placeholder="请输入密码" required>
+                        </div>
+                        <div class="form-group button-group">
+                            <button type="submit" class="btn-primary">验证</button>
+                        </div>
+                    </div>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if edit_authenticated %}
+    <!-- <div class="editor-summary">
+        <div>当前年份：{{ selected_year }}，环境：{{ ['OCG', 'TCG', '简体中文', '大师决斗'][selected_region] }}</div>
+        {% if selected_effective_date %}
+            <div>当前选中表：{{ selected_effective_date }}</div>
+        {% endif %}
+        {% if ban_list %}
+            <div>当前已有 {{ cards|length }} 张卡片，可直接修改或删除。</div>
+        {% else %}
+            <div>当前年份还没有禁卡表，先创建一个版本再添加卡片。</div>
+        {% endif %}
+    </div> -->
+
+    <div class="banlist-nav-box">
+        <div class="banlist-manage-grid">
+            <div>
+                <div class="banlist-nav-title">该年全部禁卡表</div>
+                {% if year_ban_lists %}
+                    <div class="banlist-nav">
+                        {% for ban_item in year_ban_lists %}
+                            <a class="banlist-nav-item {% if selected_effective_date == ban_item.effective_date.isoformat() %}active{% endif %}" href="{{ url_for('main.edit_page', region=selected_region, year=selected_year, effective_date=ban_item.effective_date.isoformat(), mode=selected_mode) }}">{{ ban_item.effective_date.isoformat() }}</a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-row">本年暂无禁卡表</div>
+                {% endif %}
+            </div>
+
+            {% if edit_authenticated %}
+            <div class="banlist-create-side">
+                <div class="banlist-nav-title">新建禁卡表</div>
+                <div class="upload-subtitle">点击后在弹窗中选择生效日期，可选直接从文件创建。</div>
+                <button type="button" class="btn-primary" onclick="openCreateBanListModal();">添加禁卡表</button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if ban_list %}
+    <div class="filter-box upload-box">
+        <div class="upload-title">禁卡表管理</div>
+        <div class="upload-subtitle">文件更新、修改时间、删除都集中在此处。删除操作不可恢复，请谨慎操作。</div>
+        <div class="banlist-manage-actions">
+            <form method="POST" action="{{ url_for('main.upload_banlist_csv') }}" enctype="multipart/form-data" class="banlist-action-form" onsubmit="return confirmCsvUpload();">
+                <input type="hidden" name="year" value="{{ selected_year }}">
+                <input type="hidden" name="effective_date" value="{{ selected_effective_date }}">
+                <input type="hidden" name="region" value="{{ selected_region }}">
+                <input type="hidden" id="confirm_overwrite" name="confirm_overwrite" value="no">
+                <div class="form-row">
+                    <div class="form-group upload-field upload-field-file">
+                        <label>文件更新当前禁卡表</label>
+                        <div class="upload-file-shell">
+                            <input type="file" id="banlist_csv" class="upload-file-input visually-hidden" name="banlist_csv" accept=".csv,text/csv" required>
+                            <label for="banlist_csv" class="upload-file-button">选择文件</label>
+                            <span id="csv-file-name" class="upload-file-name">尚未选择文件</span>
+                        </div>
+                    </div>
+                    <div class="form-group upload-field">
+                        <label>更新方式</label>
+                        <select id="upload_mode" name="upload_mode" class="upload-select">
+                            <option value="append">追加</option>
+                            <option value="overwrite">覆盖</option>
+                        </select>
+                    </div>
+                    <div class="form-group button-group upload-action">
+                        <button type="submit" class="btn-primary">提交文件</button>
+                    </div>
+                </div>
+            </form>
+
+            <form method="POST" action="{{ url_for('main.change_edit_banlist_date') }}" class="banlist-action-form">
+                <input type="hidden" name="year" value="{{ selected_year }}">
+                <input type="hidden" name="effective_date" value="{{ selected_effective_date }}">
+                <input type="hidden" name="region" value="{{ selected_region }}">
+                <input type="hidden" name="mode" value="{{ selected_mode }}">
+                <div class="form-row">
+                    <div class="form-group upload-field upload-field-file">
+                        <label>新的生效日期</label>
+                        <input type="date" class="upload-date-input" name="new_effective_date" value="{{ selected_effective_date }}" required>
+                    </div>
+                    <div class="form-group button-group upload-action">
+                        <button type="submit" class="btn-primary">修改时间</button>
+                    </div>
+                </div>
+            </form>
+
+            <form method="POST" action="{{ url_for('main.delete_edit_banlist') }}" class="banlist-action-form danger-action" onsubmit="return confirmDeleteBanList(this);">
+                <input type="hidden" name="year" value="{{ selected_year }}">
+                <input type="hidden" name="effective_date" value="{{ selected_effective_date }}">
+                <input type="hidden" name="region" value="{{ selected_region }}">
+                <input type="hidden" name="mode" value="{{ selected_mode }}">
+                <input type="hidden" name="confirm_delete" value="no">
+                <button type="submit" class="btn-danger">删除当前禁卡表</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if ban_list %}
+    <div class="filter-box">
+        <div class="upload-title">添加卡片</div>
+        <form method="POST" action="{{ url_for('main.edit_banlist_card') }}">
+            <input type="hidden" name="operation" value="add">
+            <input type="hidden" name="year" value="{{ selected_year }}">
+            <input type="hidden" name="effective_date" value="{{ selected_effective_date }}">
+            <input type="hidden" name="region" value="{{ selected_region }}">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>CID</label>
+                    <input type="number" name="cid" min="1">
+                </div>
+                <div class="form-group">
+                    <label>卡名</label>
+                    <input type="text" name="name">
+                </div>
+                <div class="form-group">
+                    <label>之前状态</label>
+                    <select name="old_status" class="status-select">
+                        {% for value, label in status_map.items() %}
+                        <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>新的状态</label>
+                    <select name="new_status" class="status-select">
+                        {% for value, label in status_map.items() %}
+                        <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group button-group">
+                    <button type="submit" class="btn-primary">添加 / 更新</button>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group upload-field upload-field-file">
+                    <label>备注</label>
+                    <textarea name="notes" class="notes-textarea notes-textarea-compact" rows="2" placeholder="可选"></textarea>
+                </div>
+            </div>
+        </form>
+    </div>
+    {% else %}
+    <div class="filter-box">
+        <div class="empty-row">请先创建该年份的禁卡表，再添加卡片。</div>
+    </div>
+    {% endif %}
+    {% endif %}
+
+    {% if edit_authenticated %}
+    <div id="create-banlist-modal" class="modal-overlay" aria-hidden="true">
+        <div class="modal-card" role="dialog" aria-modal="true" aria-label="新建禁卡表">
+            <div class="modal-title-row">
+                <h3 class="modal-title">新建禁卡表</h3>
+                <button type="button" class="modal-close" onclick="closeCreateBanListModal();" aria-label="关闭">×</button>
+            </div>
+            <form method="POST" action="{{ url_for('main.create_edit_banlist') }}" enctype="multipart/form-data">
+                <input type="hidden" name="year" value="{{ selected_year }}">
+                <input type="hidden" name="region" value="{{ selected_region }}">
+                <input type="hidden" name="mode" value="{{ selected_mode }}">
+                <input type="hidden" id="create_use_csv" name="use_csv" value="no">
+                <div class="form-row">
+                    <div class="form-group upload-field upload-field-file">
+                        <label>生效日期</label>
+                        <input type="date" class="upload-date-input" name="effective_date" value="{{ selected_effective_date or (selected_year ~ '-01-01') }}" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="auth-label">
+                            <input type="checkbox" id="create-banlist-use-file" onchange="toggleCreateBanListFile(this);">
+                            <span>从文件创建</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-row" id="create-banlist-file-row" style="display:none;">
+                    <div class="form-group upload-field upload-field-file">
+                        <label>CSV 文件</label>
+                        <input type="file" id="create_banlist_csv" name="banlist_csv" accept=".csv,text/csv" disabled>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeCreateBanListModal();">取消</button>
+                    <button type="submit" class="btn-primary">确认创建</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <table class="ban-table editor-table">
+        <thead>
+            <tr>
+                <th>卡图</th>
+                <th>CID</th>
+                <th>卡名</th>
+                <th>之前状态</th>
+                <th>当前状态</th>
+                <th>备注</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for card in cards %}
+            <tr>
+                <td>
+                    <a class="card-image-link" href="https://cdn.233.momobako.com/ygoimg/jp/{{ card.cid }}.jpg" data-caption="{{ card.name }}" title="点击查看大图">
+                        <img src="https://cdn.233.momobako.com/ygoimg/jp/{{ card.cid }}.jpg!half" alt="{{ card.name }}" width="100">
+                    </a>
+                </td>
+                <td>
+                    {{ card.cid }}
+                    <input form="card-form-{{ card.ban_card_id }}" type="hidden" name="card_id" value="{{ card.ban_card_id }}">
+                </td>
+                <td>{{ card.name }}</td>
+                <td>
+                    {% if edit_authenticated %}
+                        <select form="card-form-{{ card.ban_card_id }}" name="old_status" class="status-select">
+                            {% for value, label in status_map.items() %}
+                            <option value="{{ value }}" {% if value == card.old_status %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    {% else %}
+                        {{ status_map[card.old_status] }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if edit_authenticated %}
+                        <select form="card-form-{{ card.ban_card_id }}" name="new_status" class="status-select">
+                            {% for value, label in status_map.items() %}
+                            <option value="{{ value }}" {% if value == card.status %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    {% else %}
+                        {{ status_map[card.status] }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if edit_authenticated %}
+                        <textarea form="card-form-{{ card.ban_card_id }}" name="notes" class="notes-textarea notes-textarea-compact" rows="3" placeholder="可选备注">{{ card.notes or '' }}</textarea>
+                    {% else %}
+                        {{ card.notes or '' }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if edit_authenticated %}
+                        <form id="card-form-{{ card.ban_card_id }}" method="POST" action="{{ url_for('main.edit_banlist_card') }}">
+                            <input type="hidden" name="year" value="{{ selected_year }}">
+                            <input type="hidden" name="effective_date" value="{{ selected_effective_date }}">
+                            <input type="hidden" name="region" value="{{ selected_region }}">
+                            <div class="action-buttons">
+                                <button type="submit" name="operation" value="update" class="btn-primary">保存</button>
+                                <button type="submit" name="operation" value="delete" class="btn-secondary danger-button">删除</button>
+                            </div>
+                        </form>
+                    {% else %}
+                        <span class="auth-hint-inline">验证后可修改</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

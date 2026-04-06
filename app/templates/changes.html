@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block head %}
+{% endblock %}
+
+{% block content %}
+    <div class="filter-box">
+        <form method="GET" action="{{ url_for('main.main_page') }}">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>年份</label>
+                    <select name="year">
+                        {% for y in year_options %}
+                        <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>{{ y }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>环境</label>
+                    <select name="region">
+                        <option value="0" {% if selected_region == 0 %}selected{% endif %}>OCG</option>
+                        <option value="1" {% if selected_region == 1 %}selected{% endif %}>TCG</option>
+                        <option value="2" {% if selected_region == 2 %}selected{% endif %}>简体中文</option>
+                        <option value="3" {% if selected_region == 3 %}selected{% endif %}>大师决斗</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>查看类型</label>
+                    <select name="mode">
+                        <option value="changes" {% if selected_mode == "changes" %}selected{% endif %}>变化列表</option>
+                        <option value="full" {% if selected_mode == "full" %}selected{% endif %}>完整禁卡表</option>
+                    </select>
+                </div>
+
+                <div class="form-group button-group">
+                    <button type="submit" class="btn-primary">查询</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <!-- <div class="query-summary">当前年份：{{ selected_year }}{% if selected_effective_date %}，当前选中表：{{ selected_effective_date }}{% endif %}</div> -->
+
+    <div class="banlist-nav-box">
+        <div class="banlist-nav-title">该年全部禁卡表</div>
+        {% if year_ban_lists %}
+            <div class="banlist-nav">
+                {% for ban_list in year_ban_lists %}
+                    <a class="banlist-nav-item {% if selected_effective_date == ban_list.effective_date.isoformat() %}active{% endif %}" href="{{ url_for('main.main_page', mode=selected_mode, region=selected_region, year=selected_year, effective_date=ban_list.effective_date.isoformat()) }}">{{ ban_list.effective_date.isoformat() }}</a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-row">本年暂无禁卡表</div>
+        {% endif %}
+    </div>
+
+    <table class="ban-table">
+        <thead>
+            <tr>
+                <th>卡图</th>
+                <th>卡名</th>
+                <th>变化</th>
+                <th>备注</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for card in cards %}
+            <tr>
+                <td>
+                                <a class="card-image-link" href="https://cdn.233.momobako.com/ygoimg/jp/{{ card.id }}.jpg" data-caption="{{ card.name }}" title="点击查看大图">
+                        <img src="https://cdn.233.momobako.com/ygoimg/jp/{{ card.id }}.jpg!half" alt="{{ card.name }}" width="100">
+                    </a>
+                </td>
+                <td>
+                    <a class="card-link" href="https://ygocdb.com/card/{{ card.id }}" target="_blank" rel="noopener noreferrer">{{ card.name }}</a>
+                </td>
+                <td>
+                    {% if card.old_status == 3 %}
+                        <div class="status-tag {{ status_class_map[card.old_status] }}">{{ status_map[card.old_status] }}</div>
+                    {% else %}
+                        <img src="{{ url_for('static', filename=status_class_map[card.old_status] + '.svg') }}" style="width: 20px; height: auto; vertical-align: middle; object-fit: fill;">
+                    {% endif %}
+                    =>
+                    {% if card.status == 3 %}
+                        <div class="status-tag {{ status_class_map[card.status] }}">{{ status_map[card.status] }}</div>
+                    {% else %}
+                        <img src="{{ url_for('static', filename=status_class_map[card.status] + '.svg') }}" style="width: 20px; height: auto; vertical-align: middle; object-fit: fill;">
+                    {% endif %}
+                    {% if card.change_label %}
+                        <span class="change-tag {{ card.change_class }}">{{ card.change_label }}</span>
+                    {% endif %}
+                </td>
+                <td>{{ card.notes or '' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

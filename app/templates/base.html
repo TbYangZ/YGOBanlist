@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>游戏王禁卡表</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+    window.addEventListener("DOMContentLoaded", function () {
+        /* 博客栏侧边栏控制 */
+        const sidebarButton = document.querySelector(".sidebar-toggle-btn");
+        const blogHeader = document.querySelector(".blog-tool-header");
+        const sidebarBackdrop = document.querySelector(".sidebar-backdrop");
+
+        function setSidebarOpen(isOpen) {
+            if (blogHeader) {
+                blogHeader.classList.toggle("is-open", isOpen);
+            }
+            if (sidebarBackdrop) {
+                sidebarBackdrop.classList.toggle("is-open", isOpen);
+            }
+            document.body.classList.toggle("sidebar-open", isOpen);
+        }
+
+        function closeSidebar() {
+            setSidebarOpen(false);
+        }
+
+        if (sidebarButton) {
+            sidebarButton.addEventListener("click", function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                const shouldOpen = !(blogHeader && blogHeader.classList.contains("is-open"));
+                setSidebarOpen(shouldOpen);
+            });
+        }
+
+        if (blogHeader) {
+            blogHeader.addEventListener("click", function (event) {
+                event.stopPropagation();
+            });
+        }
+
+        if (sidebarBackdrop) {
+            sidebarBackdrop.addEventListener("click", function () {
+                closeSidebar();
+            });
+        }
+
+        document.addEventListener("click", function (event) {
+            if (blogHeader && blogHeader.classList.contains("is-open")) {
+                if (!event.target.closest(".blog-tool-header") && !event.target.closest(".sidebar-toggle-btn")) {
+                    closeSidebar();
+                }
+            }
+        });
+
+        const box = document.querySelector(".flash-box");
+        if (box) {
+            setTimeout(function () {
+                box.style.opacity = "0";
+                box.style.transform = "translateY(-6px)";
+                setTimeout(function () {
+                    box.remove();
+                }, 180);
+            }, 2600);
+        }
+
+        const lightbox = document.querySelector(".lightbox");
+        const lightboxImage = document.querySelector(".lightbox-image");
+        const lightboxCaption = document.querySelector(".lightbox-caption");
+        const lightboxClose = document.querySelector(".lightbox-close");
+
+        function closeLightbox() {
+            if (!lightbox) {
+                return;
+            }
+            lightbox.classList.remove("is-open");
+            lightboxImage.removeAttribute("src");
+            lightboxCaption.textContent = "";
+        }
+
+        document.addEventListener("click", function (event) {
+            const link = event.target.closest(".card-image-link");
+            if (!link) {
+                return;
+            }
+            event.preventDefault();
+            if (!lightbox || !lightboxImage) {
+                return;
+            }
+            lightboxImage.src = link.getAttribute("href");
+            lightboxCaption.textContent = link.getAttribute("data-caption") || "";
+            lightbox.classList.add("is-open");
+        });
+
+        if (lightboxClose) {
+            lightboxClose.addEventListener("click", closeLightbox);
+        }
+        if (lightbox) {
+            lightbox.addEventListener("click", function (event) {
+                if (event.target === lightbox) {
+                    closeLightbox();
+                }
+            });
+        }
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape") {
+                closeLightbox();
+            }
+        });
+    });
+    </script>
+    {% block head %}
+    {% endblock %}
+</head>
+<body>
+<button class="sidebar-toggle-btn" aria-label="打开博客栏">☰</button>
+
+<div class="sidebar-backdrop"></div>
+
+<header class="blog-tool-header" id="blogHeader">
+    <div class="blog-profile-card">
+        <img class="blog-profile-avatar" src="https://blog.logicyang.top/images/avatar.jpg" alt="Yang avatar">
+    </div>
+
+    <a class="blog-brand" href="https://blog.logicyang.top/" target="_blank" rel="noopener noreferrer">
+        <div class="blog-brand-title">Yang's blog</div>
+        <div class="blog-brand-subtitle">A website to record life and study</div>
+    </a>
+
+    <div class="blog-contact-list" aria-label="联系方式">
+        <a class="blog-contact-icon" href="https://github.com/TbYangZ" target="_blank" rel="noopener noreferrer" title="GitHub: @TbYangZ" aria-label="GitHub: @TbYangZ">
+            <svg class="blog-contact-icon-svg" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                <path d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38v-1.33c-2.22.48-2.69-1.07-2.69-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.06-.49.06-.49.81.06 1.23.83 1.23.83.72 1.23 1.88.88 2.34.67.07-.52.28-.88.5-1.08-1.77-.2-3.64-.88-3.64-3.95 0-.87.31-1.58.82-2.14-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.63 7.63 0 0 1 4 0c1.52-1.03 2.19-.82 2.19-.82.45 1.1.17 1.92.09 2.12.51.56.82 1.27.82 2.14 0 3.08-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/>
+            </svg>
+            <span class="visually-hidden">GitHub: @TbYangZ</span>
+        </a>
+        <a class="blog-contact-icon" href="mailto:zhuo_yang@stu.scu.edu.cn" target="_blank" rel="noopener noreferrer" title="E-Mail: zhuo_yang@stu.scu.edu.cn" aria-label="E-Mail: zhuo_yang@stu.scu.edu.cn">
+            <svg class="blog-contact-icon-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm0 2-8 5L4 6h16ZM4 18V8.24l7.47 4.67a1 1 0 0 0 1.06 0L20 8.24V18H4Z"/>
+            </svg>
+            <span class="visually-hidden">E-Mail: zhuo_yang@stu.scu.edu.cn</span>
+        </a>
+    </div>
+
+    <div class="blog-tool-meta">
+        <div class="blog-tool-tag">博客小工具</div>
+        <a class="blog-back-link" href="https://blog.logicyang.top/" target="_blank" rel="noopener noreferrer">返回博客首页</a>
+    </div>
+</header>
+
+<div class="container">
+
+    <main class="layout-main">
+        <h1>游戏王禁卡表查询</h1>
+
+        <div class="page-actions">
+            <a class="btn-secondary" href="{{ url_for('main.main_page') }}?mode=changes&year={{ selected_year|default(2026) }}&effective_date={{ selected_effective_date|default('') }}&region={{ selected_region|default(0) }}">查看列表</a>
+            <a class="btn-secondary" href="{{ url_for('main.edit_page') }}?year={{ selected_year|default(2026) }}&effective_date={{ selected_effective_date|default('') }}&region={{ selected_region|default(0) }}">在线编辑</a>
+        </div>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-box">
+                    {% for message in messages %}
+                        <div class="flash-item">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <div class="lightbox" aria-hidden="true">
+        <button type="button" class="lightbox-close" aria-label="关闭大图">×</button>
+        <div class="lightbox-content">
+            <img class="lightbox-image" alt="卡图大图">
+            <div class="lightbox-caption"></div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>
