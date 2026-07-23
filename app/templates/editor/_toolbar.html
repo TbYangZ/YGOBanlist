@@ -1,0 +1,60 @@
+<div class="editor-toolbar">
+    <div class="filter-box editor-filter-box">
+        <form method="GET" action="{{ url_for('editor.edit_page') }}">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>年份</label>
+                    <select name="year">
+                        {% for year in year_options %}
+                        <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>{{ year }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>环境</label>
+                    <select name="region">
+                        {% for value, label in region_map.items() %}
+                        <option value="{{ value }}" {% if value == selected_region %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group button-group">
+                    <button type="submit" class="btn-primary">切换时间</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="filter-box auth-box">
+        {% if edit_authenticated %}
+            <div class="auth-status">
+                <span>已通过密码验证，当前可进行修改。</span>
+                <form method="POST" action="{{ url_for('editor.edit_logout') }}">
+                    {% include "editor/_context_fields.html" %}
+                    <button type="submit" class="btn-secondary">退出修改权限</button>
+                </form>
+            </div>
+        {% else %}
+            <form method="POST" action="{{ url_for('editor.edit_login') }}" class="auth-form">
+                {% include "editor/_context_fields.html" %}
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="auth-label">
+                            <span>访问口令</span>
+                            <span
+                                class="auth-hint-mark"
+                                tabindex="0"
+                                aria-label="未验证前只能查看，不能新增、上传或编辑卡片。"
+                                data-tooltip="未验证前只能查看，不能新增、上传或编辑卡片。"
+                            >?</span>
+                        </label>
+                        <input type="password" class="auth-password" name="password" placeholder="请输入密码" required>
+                    </div>
+                    <div class="form-group button-group">
+                        <button type="submit" class="btn-primary">验证</button>
+                    </div>
+                </div>
+            </form>
+        {% endif %}
+    </div>
+</div>

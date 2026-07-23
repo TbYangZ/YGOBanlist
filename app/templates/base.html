@@ -155,8 +155,7 @@
         <h1>游戏王禁卡表查询</h1>
 
         <div class="page-actions">
-            <a class="btn-secondary" href="{{ url_for('main.main_page') }}?mode=changes&year={{ selected_year|default(2026) }}&effective_date={{ selected_effective_date|default('') }}&region={{ selected_region|default(0) }}">查看列表</a>
-            <a class="btn-secondary" href="{{ url_for('main.edit_page') }}?year={{ selected_year|default(2026) }}&effective_date={{ selected_effective_date|default('') }}&region={{ selected_region|default(0) }}">在线编辑</a>
+            <a class="btn-secondary" href="{{ url_for('public.main_page', mode='changes', year=selected_year|default(2026), effective_date=selected_effective_date|default(''), region=selected_region|default(0)) }}">查看列表</a>
         </div>
 
         {% with messages = get_flashed_messages() %}

@@ -1,32 +1,39 @@
 from datetime import date
 
-from app.app import create_app
-from app import models
+from app import create_app
+from app.services import banlists
 
-app = create_app()
 
-def add_card(cid, ban_list_id, old_status, new_status):
+def seed():
+    app = create_app()
     with app.app_context():
-        db = models.db
-        card = models.BanListCard(cid=cid, ban_list_id=ban_list_id, status=new_status)
-        db.session.add(card)
-        db.session.flush()
+        april, _, _ = banlists.create_ban_list(1, date(2026, 4, 1))
+        january, _, _ = banlists.create_ban_list(1, date(2026, 1, 1))
+        banlists.mutate_card(
+            "add",
+            april.region,
+            april.effective_date,
+            cid=69272449,
+            old_status=1,
+            new_status=0,
+        )
+        banlists.mutate_card(
+            "add",
+            january.region,
+            january.effective_date,
+            cid=69272449,
+            old_status=3,
+            new_status=1,
+        )
+        banlists.mutate_card(
+            "add",
+            april.region,
+            april.effective_date,
+            cid=32061192,
+            old_status=3,
+            new_status=2,
+        )
 
-        change = models.BanListCardChange(ban_list_id=ban_list_id, card_id=card.id, old_status=old_status, new_status=new_status)
-        db.session.add(change)
-        db.session.commit()
 
-with app.app_context():
-    db = models.db
-    bl = models.BanList(region=1, effective_date=date(2026, 4, 1))
-    db.session.add(bl)
-    db.session.flush()
-
-    b2 = models.BanList(region=1, effective_date=date(2026, 1, 1))
-    db.session.add(b2)
-    db.session.flush()
-    db.session.commit()
-
-    add_card(69272449, bl.id, 1, 0)
-    add_card(69272449, b2.id, 3, 1)
-    add_card(32061192, bl.id, 3, 2)
+if __name__ == "__main__":
+    seed()

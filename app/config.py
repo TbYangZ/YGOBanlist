@@ -20,8 +20,10 @@ CARD_TYPE_MAP = {
 }
 
 BANLIST_REGIONS = {
-    0: "TCG",
-    1: "OCG",
-    2: "SC",
-    3: "MD"
+    0: "OCG",
+    1: "TCG",
+    2: "简体中文",
+    3: "大师决斗",
 }
+
+VIEW_MODES = {"changes", "full"}

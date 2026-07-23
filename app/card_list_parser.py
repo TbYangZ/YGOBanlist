@@ -1,27 +1,36 @@
 import pandas as pd
 
+
+class CardListParseError(ValueError):
+    pass
+
+
 class CardListParser:
-    def __init__(self, file_path):
-        self.file_path = file_path
+    COLUMNS = ("id", "past", "current")
 
-    def parse(self):
+    def parse(self, source):
         try:
-            df = pd.read_csv(self.file_path, names=['id', 'past', 'current'], header=None)
+            data_frame = pd.read_csv(
+                source,
+                names=list(self.COLUMNS),
+                header=None,
+            )
+        except Exception as exc:
+            raise CardListParseError(f"CSV 读取失败：{exc}") from exc
 
-            for col in ['id', 'past', 'current']:
-                if col in df.columns:
-                    df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0).astype(int)
-            res = df.to_dict(orient='records')
-            for card in res:
-                for key in ['id', 'past', 'current']:
-                    if card[key] is None:
-                        raise ValueError(f"Card with id {card.get('id', 'unknown')} has invalid value in column '{key}'.")
-            return res
-        except Exception as e:
-            print(f"Error parsing card list: {e}")
-            return []
-        
+        if data_frame.empty:
+            raise CardListParseError("CSV 内容为空。")
+
+        for column in self.COLUMNS:
+            converted = pd.to_numeric(data_frame[column], errors="coerce")
+            if converted.isna().any():
+                raise CardListParseError(f"CSV 的 {column} 列包含无效数字。")
+            data_frame[column] = converted.astype(int)
+
+        return data_frame.to_dict(orient="records")
+
+
 if __name__ == "__main__":
-    parser = CardListParser("card_list.csv")
-    card_list = parser.parse()
+    parser = CardListParser()
+    card_list = parser.parse("card_list.csv")
     print(card_list)

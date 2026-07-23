@@ -1,0 +1,36 @@
+<div id="create-banlist-modal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-label="新建禁卡表">
+        <div class="modal-title-row">
+            <h2 class="modal-title">新建禁卡表</h2>
+            <button type="button" class="modal-close" onclick="closeCreateBanListModal();" aria-label="关闭">×</button>
+        </div>
+        <form method="POST" action="{{ url_for('editor.create_edit_banlist') }}" enctype="multipart/form-data">
+            {% include "editor/_context_fields.html" %}
+            <input type="hidden" id="create_use_csv" name="use_csv" value="no">
+            <div class="form-row">
+                <div class="form-group upload-field upload-field-file">
+                    <label>生效日期</label>
+                    <input type="date" class="upload-date-input" name="effective_date" value="{{ selected_effective_date or (selected_year ~ '-01-01') }}" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="auth-label">
+                        <input type="checkbox" id="create-banlist-use-file" onchange="toggleCreateBanListFile(this);">
+                        <span>从文件创建</span>
+                    </label>
+                </div>
+            </div>
+            <div class="form-row" id="create-banlist-file-row" hidden>
+                <div class="form-group upload-field upload-field-file">
+                    <label>CSV 文件</label>
+                    <input type="file" id="create_banlist_csv" name="banlist_csv" accept=".csv,text/csv" disabled>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" onclick="closeCreateBanListModal();">取消</button>
+                <button type="submit" class="btn-primary">确认创建</button>
+            </div>
+        </form>
+    </div>
+</div>

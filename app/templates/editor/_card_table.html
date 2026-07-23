@@ -1,0 +1,77 @@
+<div class="table-scroll">
+    <table class="ban-table editor-table">
+        <thead>
+            <tr>
+                <th>卡图</th>
+                <th>CID</th>
+                <th>卡名</th>
+                <th>之前状态</th>
+                <th>当前状态</th>
+                <th>备注</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for card in cards %}
+            <tr>
+                <td>
+                    <a class="card-image-link" href="https://cdn.233.momobako.com/ygoimg/jp/{{ card.cid }}.jpg" data-caption="{{ card.name }}" title="点击查看大图">
+                        <img src="https://cdn.233.momobako.com/ygoimg/jp/{{ card.cid }}.jpg!half" alt="{{ card.name }}" width="100">
+                    </a>
+                </td>
+                <td>
+                    {{ card.cid }}
+                    <input form="card-form-{{ card.ban_card_id }}" type="hidden" name="card_id" value="{{ card.ban_card_id }}">
+                </td>
+                <td>{{ card.name }}</td>
+                <td>
+                    {% if edit_authenticated %}
+                        <select form="card-form-{{ card.ban_card_id }}" name="old_status" class="status-select">
+                            {% for value, label in status_map.items() %}
+                            <option value="{{ value }}" {% if value == card.old_status %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    {% else %}
+                        {{ status_map[card.old_status] }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if edit_authenticated %}
+                        <select form="card-form-{{ card.ban_card_id }}" name="new_status" class="status-select">
+                            {% for value, label in status_map.items() %}
+                            <option value="{{ value }}" {% if value == card.status %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    {% else %}
+                        {{ status_map[card.status] }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if edit_authenticated %}
+                        <textarea form="card-form-{{ card.ban_card_id }}" name="notes" class="notes-textarea notes-textarea-compact" rows="3" placeholder="可选备注">{{ card.notes or '' }}</textarea>
+                    {% else %}
+                        {{ card.notes or '' }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if edit_authenticated %}
+                        <form id="card-form-{{ card.ban_card_id }}" method="POST" action="{{ url_for('editor.edit_banlist_card') }}">
+                            {% include "editor/_context_fields.html" %}
+                            <div class="action-buttons">
+                                <button type="submit" name="operation" value="update" class="btn-primary">保存</button>
+                                <button type="submit" name="operation" value="delete" class="btn-secondary danger-button">删除</button>
+                            </div>
+                        </form>
+                    {% else %}
+                        <span class="auth-hint-inline">验证后可修改</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" class="empty-row">当前禁卡表暂无卡片</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

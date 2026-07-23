@@ -1,0 +1,289 @@
+.table-scroll {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.ban-table {
+    width: 100%;
+    border-collapse: collapse;
+    overflow: hidden;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.ban-table thead {
+    background: #34495e;
+    color: #fff;
+}
+
+.ban-table th,
+.ban-table td {
+    padding: 14px 18px;
+    text-align: left;
+}
+
+.ban-table th {
+    font-weight: 600;
+}
+
+.ban-table tbody tr {
+    border-bottom: 1px solid #eee;
+}
+
+.ban-table tbody tr:nth-child(even) {
+    background: #fafafa;
+}
+
+.ban-table tbody tr:hover {
+    background: #f2f8ff;
+    transition: background 0.2s ease;
+}
+
+.filter-box,
+.banlist-nav-box {
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.filter-box {
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.form-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    margin-bottom: 6px;
+    color: #555;
+    font-size: 14px;
+}
+
+select,
+input[type="number"],
+input[type="text"] {
+    min-width: 120px;
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.btn-primary,
+.btn-secondary {
+    padding: 9px 18px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.btn-primary {
+    border: 0;
+    background: #2c3e50;
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background: #1a252f;
+}
+
+.btn-secondary {
+    border: 1px solid #cbd5e0;
+    background: #edf2f7;
+    color: #2c3e50;
+}
+
+.btn-secondary:hover {
+    background: #dfe7ef;
+}
+
+.banlist-nav-box {
+    padding: 16px 18px;
+    margin-bottom: 24px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.banlist-nav-title {
+    margin-bottom: 10px;
+    color: #334155;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.banlist-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.banlist-nav-item {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 12px;
+    border: 1px solid #cbd5e0;
+    border-radius: 999px;
+    background: #f8fafc;
+    color: #334155;
+    font-size: 13px;
+    text-decoration: none;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.banlist-nav-item:hover {
+    border-color: #9fb0c7;
+    background: #eaf2fb;
+}
+
+.banlist-nav-item.active {
+    border-color: #2c3e50;
+    background: #2c3e50;
+    color: #fff;
+}
+
+.status-section {
+    margin-bottom: 28px;
+}
+
+.status-section-title {
+    margin: 0 0 12px;
+    color: #1f2937;
+    font-size: 20px;
+}
+
+.status-tag {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.status-icon {
+    width: 20px;
+    height: auto;
+    object-fit: fill;
+    vertical-align: middle;
+}
+
+.change-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    margin-left: 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    vertical-align: middle;
+}
+
+.change-tight {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.change-loose {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.change-none {
+    background: #e2e8f0;
+    color: #334155;
+}
+
+.status-banned {
+    background: #e74c3c;
+}
+
+.status-limited {
+    background: #f39c12;
+}
+
+.status-semi {
+    background: #f1c40f;
+    color: #333;
+}
+
+.status-unlimited {
+    background: #2ecc71;
+}
+
+.card-link {
+    border-bottom: 1px solid transparent;
+    color: #1f4f7a;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.16s ease, border-color 0.16s ease;
+}
+
+.card-link:hover {
+    border-bottom-color: #163a5a;
+    color: #163a5a;
+}
+
+.card-image-link {
+    display: inline-block;
+    overflow: hidden;
+    border-radius: 6px;
+    line-height: 0;
+    transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+.card-image-link:hover {
+    transform: scale(1.02);
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.18);
+}
+
+.card-image-link img {
+    display: block;
+}
+
+.empty-row {
+    padding: 18px 0;
+    color: #94a3b8;
+    text-align: center;
+}
+
+.action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.danger-button {
+    border-color: #fecaca;
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.danger-button:hover {
+    background: #fecaca;
+}
+
+@media (max-width: 720px) {
+    .ban-table {
+        min-width: 680px;
+    }
+
+    .form-row {
+        align-items: stretch;
+        gap: 14px;
+    }
+
+    .form-group {
+        flex: 1 1 160px;
+    }
+}

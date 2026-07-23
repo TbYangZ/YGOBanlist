@@ -1,0 +1,61 @@
+<section class="filter-box upload-box">
+    <h2 class="section-title">禁卡表管理</h2>
+    <p class="section-description">文件更新、修改时间、删除都集中在此处。删除操作不可恢复，请谨慎操作。</p>
+
+    <div class="banlist-manage-actions">
+        <form
+            method="POST"
+            action="{{ url_for('editor.upload_banlist_csv') }}"
+            enctype="multipart/form-data"
+            class="banlist-action-form"
+            onsubmit="return confirmCsvUpload();"
+        >
+            {% include "editor/_context_fields.html" %}
+            <input type="hidden" id="confirm_overwrite" name="confirm_overwrite" value="no">
+            <div class="form-row">
+                <div class="form-group upload-field upload-field-file">
+                    <label>文件更新当前禁卡表</label>
+                    <div class="upload-file-shell">
+                        <input type="file" id="banlist_csv" class="upload-file-input visually-hidden" name="banlist_csv" accept=".csv,text/csv" required>
+                        <label for="banlist_csv" class="upload-file-button">选择文件</label>
+                        <span id="csv-file-name" class="upload-file-name">尚未选择文件</span>
+                    </div>
+                </div>
+                <div class="form-group upload-field">
+                    <label>更新方式</label>
+                    <select id="upload_mode" name="upload_mode" class="upload-select">
+                        <option value="append">追加</option>
+                        <option value="overwrite">覆盖</option>
+                    </select>
+                </div>
+                <div class="form-group button-group upload-action">
+                    <button type="submit" class="btn-primary">提交文件</button>
+                </div>
+            </div>
+        </form>
+
+        <form method="POST" action="{{ url_for('editor.change_edit_banlist_date') }}" class="banlist-action-form">
+            {% include "editor/_context_fields.html" %}
+            <div class="form-row">
+                <div class="form-group upload-field upload-field-file">
+                    <label>新的生效日期</label>
+                    <input type="date" class="upload-date-input" name="new_effective_date" value="{{ selected_effective_date }}" required>
+                </div>
+                <div class="form-group button-group upload-action">
+                    <button type="submit" class="btn-primary">修改时间</button>
+                </div>
+            </div>
+        </form>
+
+        <form
+            method="POST"
+            action="{{ url_for('editor.delete_edit_banlist') }}"
+            class="banlist-action-form danger-action"
+            onsubmit="return confirmDeleteBanList(this);"
+        >
+            {% include "editor/_context_fields.html" %}
+            <input type="hidden" name="confirm_delete" value="no">
+            <button type="submit" class="btn-danger">删除当前禁卡表</button>
+        </form>
+    </div>
+</section>

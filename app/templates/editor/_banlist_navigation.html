@@ -1,0 +1,25 @@
+<div class="banlist-nav-box">
+    <div class="banlist-manage-grid">
+        <div>
+            <div class="banlist-nav-title">该年全部禁卡表</div>
+            {% if year_ban_lists %}
+                <div class="banlist-nav">
+                    {% for ban_item in year_ban_lists %}
+                        <a
+                            class="banlist-nav-item {% if selected_effective_date == ban_item.effective_date.isoformat() %}active{% endif %}"
+                            href="{{ url_for('editor.edit_page', region=selected_region, year=selected_year, effective_date=ban_item.effective_date.isoformat(), mode=selected_mode) }}"
+                        >{{ ban_item.effective_date.isoformat() }}</a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-row">本年暂无禁卡表</div>
+            {% endif %}
+        </div>
+
+        <div class="banlist-create-side">
+            <div class="banlist-nav-title">新建禁卡表</div>
+            <div class="upload-subtitle">点击后在弹窗中选择生效日期，可选直接从文件创建。</div>
+            <button type="button" class="btn-primary" onclick="openCreateBanListModal();">添加禁卡表</button>
+        </div>
+    </div>
+</div>
